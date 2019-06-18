@@ -1,0 +1,48 @@
+---
+title: "christmas_bird_counts"
+author: "Justin Shotwell"
+date: "June 18, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Packages
+
+library(tidyverse)
+library(scales)
+library(ggthemes)
+
+## Theme
+
+theme_set(theme_tufte() +
+  theme(text = element_text(size=16))
+  )
+
+## Data
+
+bird_counts <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-18/bird_counts.csv") 
+
+## Data Processed
+
+bird_counts_proc <- bird_counts %>%
+  rename(counted = how_many_counted,
+         hours = total_hours,
+         per_hour = how_many_counted_by_hour) %>%
+  filter(!is.na(hours))
+
+```
+
+```{r}
+
+bird_counts_proc %>%
+  group_by(year) %>%
+  summarise(counted = sum(counted),
+            hours = sum(hours),
+            per_hour = counted / hours) %>%
+  ggplot(aes(year, per_hour)) +
+  geom_point()
+
+```
+
