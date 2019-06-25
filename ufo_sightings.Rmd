@@ -1,0 +1,38 @@
+---
+title: "ufo_sightings"
+author: "Justin Shotwell"
+date: "June 24, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Packages
+
+library(tidyverse)
+library(scales)
+library(ggthemes)
+
+## Theme
+
+theme_set(theme_tufte() +
+  theme(text = element_text(size=16))
+  )
+
+## Data
+
+ufo_sightings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-25/ufo_sightings.csv")
+
+
+```
+
+```{r}
+
+## Justin. Try to make a world map with all of the sightings represented by points. Use alpha.
+
+ufo_sightings %>%
+  count(encounter_length, sort = TRUE)
+
+```
+
