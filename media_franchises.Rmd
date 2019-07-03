@@ -1,0 +1,120 @@
+---
+title: "media_franchises"
+author: "Justin Shotwell"
+date: "July 1, 2019"
+output: html_document
+---
+
+```{r packages}
+
+library(tidyverse)
+library(ggthemes)
+library(scales)
+
+```
+
+```{r colors}
+
+background <- "#F5F1E3"
+
+shotwell_colors <- c(
+  `red`        = "#6B0F1A",
+  `green`      = "#88AB75",
+  `blue`       = "#2E86AB",
+  `orange`     = "#F37735",
+  `yellow`     = "#DBD56E",
+  `purple`     = "#6E2594",
+  `light grey` = "#D9D8D9",
+  `dark grey`  = "#7C767A")
+
+shotwell_cols <- function(...) {
+  cols <- c(...)
+
+  if (is.null(cols))
+    return (shotwell_colors)
+
+  shotwell_colors[cols]
+}
+
+shotwell_palettes <- list(
+  `main`  = shotwell_cols("blue", "green", "yellow"),
+  `cool`  = shotwell_cols("blue", "green"),
+  `hot`   = shotwell_cols("yellow", "orange", "red"),
+  `mixed` = shotwell_cols("blue", "green", "yellow", "orange", "red", "dark grey"),
+  `grey`  = shotwell_cols("light grey", "dark grey")
+)
+
+shotwell_pal <- function(palette = "main", reverse = FALSE, ...) {
+  pal <- shotwell_palettes[[palette]]
+
+  if (reverse) pal <- rev(pal)
+
+  colorRampPalette(pal, ...)
+}
+
+scale_color_shotwell <- function(palette = "main", discrete = TRUE, reverse = FALSE, ...) {
+  pal <- shotwell_pal(palette = palette, reverse = reverse)
+
+  if (discrete) {
+    discrete_scale("colour", paste0("shotwell_", palette), palette = pal, ...)
+  } else {
+    scale_color_gradientn(colours = pal(256), ...)
+  }
+}
+
+scale_fill_shotwell <- function(palette = "main", discrete = TRUE, reverse = FALSE, ...) {
+  pal <- shotwell_pal(palette = palette, reverse = reverse)
+
+  if (discrete) {
+    discrete_scale("fill", paste0("shotwell_", palette), palette = pal, ...)
+  } else {
+    scale_fill_gradientn(colours = pal(256), ...)
+  }
+}
+  
+```
+
+```{r theme}
+
+theme_set(theme_tufte() +
+  theme(text = element_text(size=16),
+        panel.background = element_rect(fill = background, colour = background),
+        plot.background = element_rect(fill = background)
+      )
+  )
+
+```
+
+```{r options}
+
+## Remove Scientific Notation
+
+options(scipen=999)
+
+```
+
+```{r data}
+
+media_franchises <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-02/media_franchises.csv") %>%
+  distinct() %>%
+  mutate(age = 2019 - year_created)
+
+```
+
+```{r final fantasy}
+
+media_franchises %>%
+  filter(franchise == "Final Fantasy") %>%
+  group_by(revenue_category) %>%
+  summarise(total_revenue = sum(revenue)) %>%
+  mutate(revenue_category = fct_reorder(revenue_category, total_revenue)) %>%
+    ggplot(aes(revenue_category, total_revenue, fill = revenue_category)) +
+    geom_col() +
+    scale_fill_shotwell(palette = "mixed", guide = "none", reverse = TRUE) +
+    scale_y_continuous(labels = comma_format()) +
+    coord_flip() +
+    labs(x = "",
+         y = "Total Revenue(billions)",
+         title = "Where does Final Fantasy's revenue come from?",
+         caption = "Source: Wikipedia")
+```

@@ -13,12 +13,18 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(scales)
 library(ggthemes)
+library(maps)
 
 ## Theme
 
 theme_set(theme_tufte() +
   theme(text = element_text(size=16))
   )
+
+## Colors
+
+blue <- "#2E86AB"
+red <- "#6B0F1A"
 
 ## Data
 
@@ -29,10 +35,43 @@ ufo_sightings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascie
 
 ```{r}
 
-## Justin. Try to make a world map with all of the sightings represented by points. Use alpha.
+us_states <- map_data("state") %>%
+  filter(region != "alaska",
+         region != "hawaii")
 
-ufo_sightings %>%
-  count(encounter_length, sort = TRUE)
+us_sightings <- ufo_sightings %>%
+  filter(country == "us",
+         state != "ak",
+         state != "hi",
+         state != "pr")
+
+```
+
+```{r}
+
+ggplot(data = us_states,
+       mapping = aes(x = long,
+                     y = lat,
+                     group = group)) +
+  geom_polygon(color = "gray90",
+               fill = "white",
+               size = 0.3) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  guides(fill = FALSE) +
+  geom_point(data = us_sightings,
+             aes(longitude, latitude),
+             color = blue,
+             alpha = .3,
+             size = .1,
+             inherit.aes = FALSE) +
+  theme_tufte() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(x = "",
+       y = "",
+       title = "UFO Sightings",
+       subtitle = "USA, 2010 - 2013",
+       caption = "Source: NUFORC")
 
 ```
 
