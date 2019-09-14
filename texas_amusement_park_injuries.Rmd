@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+author: "Justin Shotwell"
+date: "September 14, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE}
+
+library(tidyverse)
+library(ggthemes)
+
+theme_set(theme_clean())
+
+tx_injuries <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-09-10/tx_injuries.csv")
+
+
+```
+
+```{r}
+
+tx_injuries
+
+```
+
