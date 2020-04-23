@@ -1,0 +1,104 @@
+---
+title: "us_tuition_costs"
+author: "Justin Shotwell"
+date: "4/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE}
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(ggthemes)
+library(scales)
+
+theme_set(theme_tufte())
+
+```
+
+This is the average cost for "one year of full-time study at public four-year institutions" by state.
+
+```{r data, include=FALSE, message=FALSE}
+
+us_tuition <- readxl::read_excel("us_avg_tuition.xlsx") %>%
+  clean_names() %>%
+  pivot_longer(-state, names_to = "year", values_to = "cost") %>%
+  mutate(year = str_replace(year, "x", ""),
+         year = str_replace(year, "_.*", ""),
+         year = as.integer(year) - 2004)
+
+```
+
+The first thing I think to ask is how have the states changed relatvie to other states.
+
+```{r}
+
+us_tuition %>%
+  ggplot(aes(year, cost, group = state)) +
+  geom_line() +
+  geom_smooth(method = "lm", group = 1)
+
+```
+
+That just tells us that the states are all rising in cost over time. I suspect that some states are rising at different rates. One way to see this clearer would be to create a simple linear model for each state that compares year and cost. Then sort the results by the highest coefficient. 
+
+```{r}
+
+by_state <- us_tuition %>%
+  group_by(state) %>%
+  nest()
+
+state_model <- function(df) {
+  lm(cost ~ year, data = df)
+}
+  
+by_state <- by_state %>% 
+  mutate(model = map(data, state_model))
+
+by_state_tidy <- by_state %>% 
+  mutate(tidy = map(model, broom::tidy)) %>% 
+  unnest(tidy) %>%
+  select(state, term, estimate) %>%
+  filter(term == "year") %>%
+  ungroup() %>%
+  mutate(state = as_factor(state))
+
+str(by_state_tidy)
+
+```
+
+```{r}
+
+by_state_tidy %>%
+  mutate(state = fct_reorder(state, estimate)) %>%
+  arrange(desc(estimate)) %>%
+  head(10) %>%
+  ggplot(aes(state, estimate)) +
+  geom_col(fill = "darkgreen") +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "College Cost Rate of Change by State",
+       subtitle = "Top 10 Rates of Increase",
+       x = "",
+       y = "Average Estimated Change in Cost per Year")
+
+```
+
+```{r}
+
+by_state_tidy %>%
+  mutate(state = fct_reorder(state, estimate)) %>%
+  arrange(desc(estimate)) %>%
+  tail(10) %>%
+  ggplot(aes(state, estimate)) +
+  geom_col(fill = "darkgreen") +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "College Cost Rate of Change by State",
+       subtitle = "Top 10 Rates of Increase",
+       x = "",
+       y = "Average Estimated Change in Cost per Year")
+
+```
+
