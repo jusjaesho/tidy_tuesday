@@ -32,16 +32,42 @@ us_tuition <- readxl::read_excel("us_avg_tuition.xlsx") %>%
 
 The first thing I think to ask is how have the states changed relatvie to other states.
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 us_tuition %>%
-  ggplot(aes(year, cost, group = state)) +
+  ggplot(aes(year +  2004, cost, group = state)) +
   geom_line() +
-  geom_smooth(method = "lm", group = 1)
+  geom_smooth(method = "lm", group = 1) +
+  labs(x = "Year",
+       y = "One Year of Tuition")
+
+```
+```{r warning=FALSE, message=FALSE}
+
+us_tuition %>%
+  filter(state == "Illinois") %>%
+  ggplot(aes(year +  2004, cost, group = state)) +
+  geom_line() +
+  geom_smooth(method = "lm", group = 1) +
+  labs(x = "Year",
+       y = "One Year of Tuition")
 
 ```
 
-That just tells us that the states are all rising in cost over time. I suspect that some states are rising at different rates. One way to see this clearer would be to create a simple linear model for each state that compares year and cost. Then sort the results by the highest coefficient. 
+
+```{r warning=FALSE, message=FALSE}
+
+us_tuition %>%
+  filter(state == "Georgia") %>%
+  ggplot(aes(year +  2004, cost, group = state)) +
+  geom_line() +
+  geom_smooth(method = "lm", group = 1) +
+  labs(x = "Year",
+       y = "One Year of Tuition")
+
+```
+
+That just tells us that the states are all rising in cost over time. I suspect that some states are rising at different rates. One way to see this clearer would be to create a simple linear model for each state that compares year and cost. Then sort the results by the highest coefficient estimate.
 
 ```{r}
 
@@ -96,7 +122,7 @@ by_state_tidy %>%
   coord_flip() +
   scale_y_continuous(labels = dollar_format()) +
   labs(title = "College Cost Rate of Change by State",
-       subtitle = "Top 10 Rates of Increase",
+       subtitle = "Bottom 10 Rates of Increase",
        x = "",
        y = "Average Estimated Change in Cost per Year")
 
