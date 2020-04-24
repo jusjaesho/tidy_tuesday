@@ -1,0 +1,70 @@
+---
+title: "nfl_salary"
+author: "Justin Shotwell"
+date: "4/23/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, message=FALSE}
+
+library(tidyverse)
+library(ggthemes)
+library(scales)
+theme_set(theme_tufte())
+
+```
+
+```{r}
+
+nfl_salary <- readxl::read_excel("nfl_salary.xlsx") %>%
+  pivot_longer(-year, "position", values_to = "salary") %>%
+  mutate(position = as_factor(position)) %>%
+  filter(!is.na(salary))
+
+```
+
+What is the highest paid position?
+
+```{r}
+
+nfl_salary %>%
+  mutate(position = fct_reorder(position, salary)) %>%
+  ggplot(aes(position, salary, fill = position)) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_continuous(labels = number_format(big.mark = ",")) +
+  labs(x = "Position",
+       y = "Yearly Salary") +
+  theme(legend.position = "none")
+
+```
+
+Scatterplot of all salaries. This is more useless than I was expecting.
+
+```{r}
+
+nfl_salary %>%
+  ggplot(aes(year, salary, color = position)) +
+  geom_jitter(alpha = 0.6, width = 2) +
+  scale_y_log10(labels = dollar_format())
+
+```
+
+
+How have salaries at each position changed over time?
+
+```{r}
+
+nfl_salary %>%
+  group_by(year, position) %>%
+  summarise(median_salary = median(salary)) %>%
+  ggplot(aes(year, median_salary, group = position, color = position)) +
+  geom_line() +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(x = "Year",
+       y = "Median Salary")
+
+```
+
